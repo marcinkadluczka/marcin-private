@@ -1,0 +1,32 @@
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# editor files #
+################
+# Vi            
+*.swp
+.tags
+tags 
+*~
+# Sublime
+# PyCharm                         
+.idea/   
+# Python
+*.pyc   
+# node modules for grunt
+node_modules            
+/npm-debug.log
+# SCSS cache files
+.sass-cache/      
+# misc      
+nohup.out
+dump.rdb 
+
+# project files to exclude #
