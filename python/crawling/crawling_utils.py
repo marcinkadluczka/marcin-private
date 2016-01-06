@@ -6,6 +6,7 @@ __author__ = 'marcin, mike'
 """
 import time
 import urllib2
+import sys
 
 from random import randint
 
@@ -27,7 +28,8 @@ class UrlFetcher:
       'Connection': 'keep-alive'
   }
   
-  def __init__(self, headers_dict = None, cookies_dict = None, timeout = 20):
+  def __init__(self, headers_dict = None, cookies_dict = None, timeout = 20,
+               debug_level = 0):
     self.header_dict = self.default_header_dict if headers_dict is None \
                        else headers_dict
     self.cookies_dict = cookies_dict
@@ -36,11 +38,14 @@ class UrlFetcher:
     self._content = None
     self._status_code = None
     self._error = None
+    self._debug_level = debug_level
     
   def fetchUrl(self, url):
     """
       Fetch a given url and return content
     """
+    if self._debug_level > 0:
+      print "fetchUrl fetching %s" % url
     try:
       req = urllib2.Request(url, headers = self.header_dict)
       self.start_time = time.time()
@@ -54,20 +59,31 @@ class UrlFetcher:
       else:
         self._content = response.read()
     except urllib2.HTTPError, e:
-      endt = time.time()
+      self.end_time = time.time()
       if self._debug_level > 0:
         print("Got error code %s" % e.code)
       try:
         self._content = e.read()
         try:
           if e.info().getheader('Content-Encoding') == 'gzip':
-          response = zlib.decompress(response, 16 + zlib.MAX_WBITS)
+            response = zlib.decompress(response, 16 + zlib.MAX_WBITS)
         except:
           pass
       except:
         self._content = None
     except Exception, e:
       self._status_code = 601
-      endt = time.time()
+      self.end_time = time.time()
+    if self._debug_level > 0:
+     print "fetchUrl fetched %s in %5.3fs with %s" % \
+         (url, self.end_time - self.start_time, self._status_code)
     return self._content
     
+if __name__ == "__main__":
+  sys.settrace
+  
+  test_url = 'https://www.linkedin.com/?trk=nav_logo'
+  print "Testing crawling_utils.py"
+  fetcher = UrlFetcher(debug_level = 1)
+  # Test fetching url
+  fetcher.fetchUrl(test_url)
