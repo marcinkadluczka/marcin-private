@@ -4,11 +4,14 @@ __author__ = 'marcin, mike'
   Crawling utils - wrapped fetching library (urllib2) with some useful utils
   to hide wiring stuff.
 """
+import gzip
 import time
 import urllib2
 import sys
+import zlib
 
 from random import randint
+from StringIO import StringIO
 
 
 class UrlFetcher:
@@ -30,6 +33,14 @@ class UrlFetcher:
   
   def __init__(self, headers_dict = None, cookies_dict = None, timeout = 20,
                debug_level = 0):
+    """
+        Parameters:
+      :param headers_dict: Non-default headers
+      :param cookies_dict: cookies dictionary to be provided
+      :param timeout: timeout - default 20s
+      :param debug_level: debug level to show some verbose logs
+      :return: content of the page otherwise (error) None
+    """
     self.header_dict = self.default_header_dict if headers_dict is None \
                        else headers_dict
     self.cookies_dict = cookies_dict
@@ -49,7 +60,7 @@ class UrlFetcher:
     try:
       req = urllib2.Request(url, headers = self.header_dict)
       self.start_time = time.time()
-      response = opener.open(req, timeout = self.timeout)
+      response = self.opener.open(req, timeout = self.timeout)
       self.end_time = time.time()
       if (response.info().has_key('Content-Encoding') and 
           response.info().get('Content-Encoding') == 'gzip'):
@@ -58,6 +69,7 @@ class UrlFetcher:
         self._content = f.read()
       else:
         self._content = response.read()
+      self._status_code = 200
     except urllib2.HTTPError, e:
       self.end_time = time.time()
       if self._debug_level > 0:
@@ -72,6 +84,7 @@ class UrlFetcher:
       except:
         self._content = None
     except Exception, e:
+      print "fetchUrl got exception: %s" % str(e)
       self._status_code = 601
       self.end_time = time.time()
     if self._debug_level > 0:
@@ -86,4 +99,5 @@ if __name__ == "__main__":
   print "Testing crawling_utils.py"
   fetcher = UrlFetcher(debug_level = 1)
   # Test fetching url
-  fetcher.fetchUrl(test_url)
+  body = fetcher.fetchUrl(test_url)
+  print "got page:\n%.1000s" % body
